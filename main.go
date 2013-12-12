@@ -17,7 +17,6 @@ import (
 
 var (
 	debug = flag.Bool("d", false, "Enable debugging output")
-	term  = flag.Bool("t", false, "Just run in the terminal (instead of an acme win)")
 )
 
 const rebuildDelay = 200 * time.Millisecond
@@ -47,12 +46,6 @@ func main() {
 	watchPath := "."
 
 	ui := ui(writerUi{os.Stdout, make(chan struct{})})
-	if !*term {
-		var err error
-		if ui, err = newWin(watchPath); err != nil {
-			log.Fatalln("Failed to open a win:", err)
-		}
-	}
 
 	timer := time.NewTimer(0)
 	changes := startWatching(watchPath)
@@ -79,6 +72,10 @@ func run(ui ui) time.Time {
 	r, w, err := os.Pipe()
 	if err != nil {
 		log.Fatalln("Failed to create a pipe:", err)
+	}
+
+	if len(flag.Args()) == 0 {
+		log.Fatalln("You must supply a program to run!")
 	}
 
 	cmd := exec.Command(flag.Arg(0), flag.Args()[1:]...)
